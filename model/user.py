@@ -7,6 +7,17 @@ from app import login
 class User(UserMixin, MongoModel):
     username = fields.CharField(primary_key=True)
     password = fields.CharField()
+    # def is_active(self):
+    #     # Here you should write whatever the code is
+    #     # that checks the database if your user is active
+    #     return self.active
+
+    # def is_anonymous(self):
+    #     return False
+
+    # def is_authenticated(self):
+    #     return True
+
     class Meta:
         final = True
         collection_name = 'users'
@@ -30,4 +41,4 @@ class UserDAO(object):
 
 @login.user_loader
 def get_user(username):
-    User.objects.get({'_id': username})
+    return User.objects.get({'_id': username})

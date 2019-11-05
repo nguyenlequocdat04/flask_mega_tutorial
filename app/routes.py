@@ -10,11 +10,11 @@ from flask_login import current_user, login_user, logout_user
 @app.route('/index')
 def index():
     # print(app.config['SECRET_KEY'])
-    # if not current_user:
-    #     flash("Please login!!")
-    #     return redirect(url_for("login"))
+    if not current_user:
+        flash("Please login!!")
+        return redirect(url_for("login"))
     
-    user = {'username': 'dat'}
+    user = {'username': 'Stranger'}
     posts = [
         {
             'author': {'username': 'John'},
@@ -25,10 +25,12 @@ def index():
             'body': 'The Avengers movie was so cool!'
         }
     ]
-    return render_template('index.html', title = "Home", user = user, posts = posts)
+    return render_template('index.html', title = "Home", posts = posts)
 
 @app.route('/login', methods = ['GET', 'POST'])
 def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
     form = LoginForm()
     if form.validate_on_submit():
         flash('Login requested for user {}, remember_me={}'.format(

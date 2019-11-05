@@ -10,3 +10,7 @@ services:
       - 5000:5000
     command: >
       bash -c "python microblog.py"
+networks:
+  default:
+    external:
+      name: fratment
