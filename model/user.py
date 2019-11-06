@@ -32,11 +32,11 @@ class UserDAO(object):
         return User.objects.values().all()
 
     @staticmethod
-    def login(username):
+    def get_by_username(username):
         return User.objects.get({'_id': username})
 
     @staticmethod
-    def create_sample_user(username, password):
+    def create_user(username, password):
         User(username=username, password=generate_password_hash(password)).save()
 
 @login.user_loader

@@ -4,9 +4,16 @@ from werkzeug.security import check_password_hash
 
 class UserService(object):
     @staticmethod
+    def get_by_username(username):
+        try:
+            return UserDAO.get_by_username(username)
+        except DoesNotExist:
+            return None
+
+    @staticmethod
     def login(username, password):
         try:
-            user = UserDAO.login(username)
+            user = UserDAO.get_by_username(username)
             if check_password_hash(user.password, password):
                 return user
             else:
@@ -19,4 +26,11 @@ class UserService(object):
         try:
             return UserDAO.get_all()
         except DoesNotExist:
+            return None
+
+    @staticmethod
+    def create_user(username, password):
+        try:
+            return UserDAO.create_user(username, password)
+        except:
             return None
