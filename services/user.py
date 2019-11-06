@@ -29,8 +29,8 @@ class UserService(object):
             return None
 
     @staticmethod
-    def create_user(username, password):
+    def create_user(username, password, email):
         try:
-            return UserDAO.create_user(username, password)
+            return UserDAO.create_user(username, password, email)
         except:
             return None
