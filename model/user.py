@@ -5,6 +5,7 @@ from flask_login import UserMixin
 from app import login
 from hashlib import md5
 import datetime
+import pyotp
 
 
 class User(UserMixin, MongoModel):
@@ -13,6 +14,7 @@ class User(UserMixin, MongoModel):
     password = fields.CharField()
     about_me = fields.CharField(max_length=140)
     last_seen = fields.DateTimeField(default=datetime.datetime.now())
+    base32_key = fields.CharField()
     # def is_active(self):
     #     # Here you should write whatever the code is
     #     # that checks the database if your user is active
@@ -50,7 +52,7 @@ class UserDAO(object):
     @staticmethod
     def create_user(username, password, email):
         return User(username=username, password=generate_password_hash(
-            password), email=email).save()
+            password), email=email, base32_key=pyotp.random_base32()).save()
 
 
 @login.user_loader
