@@ -25,8 +25,7 @@ def index():
     if not current_user:
         flash("Please login!!")
         return redirect(url_for("login"))
-
-    user = {'username': 'Stranger'}
+    user = UserService.get_by_username(current_user.username)
     posts = [
         {
             'author': {'username': 'John'},
@@ -37,23 +36,7 @@ def index():
             'body': 'The Avengers movie was so cool!'
         }
     ]
-    return render_template('index.html', title="Home", posts=posts)
-
-# @app.route('/login', methods=['GET', 'POST'])
-# def login():
-#     if current_user.is_authenticated:
-#         return redirect(url_for('index'))
-#     form = LoginForm()
-#     if form.validate_on_submit():
-#         user = UserService.login(form.username.data, form.password.data)
-#         if user:
-#             next_page = request.args.get('next')
-#             if not next_page or url_parse(next_page).netloc != '':
-#                 next_page = url_for('index')
-#             login_user(user, remember=form.remember_me.data)
-#             return redirect(next_page)
-#     # return render_template('login1.html')
-#     return render_template('login.html', title='Sign In', form=form)
+    return render_template('index.html', title="Home", posts=posts, user = user)
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -68,25 +51,47 @@ def login():
             next_page = request.args.get('next')
             if not next_page or url_parse(next_page).netloc != '':
                 next_page = url_for('index')
-            login_user(user)
-            return redirect(next_page)
+            session['username'] = user.username
+            session['next_page'] = next_page
+            if user.totp_enable:
+                return redirect(url_for('authen'))
+            else:
+                login_user(user)
+                return redirect(next_page)
     return render_template('login1.html')
     # return render_template('login.html', title='Sign In', form=form)
 
 
-@app.route('/ReAu', methods=['GET'])
-@login_required
+@app.route('/reau', methods=['GET', 'POST'])
+# @login_required
 def authen():
-    
-    return render_template('2authentication.html')
+    # if current_user.is_authenticated:
+    if session.get('username'):
+        username = session.get('username')
+        # username = current_user.username
+        user = UserService.get_by_username(username)
+        session['base32_key'] = user.base32_key
+        if request.method == "POST":
+            totp = pyotp.TOTP(session.get('base32_key'))
+            otp = request.json['otp']
+            if totp.verify(otp):
+                login_user(user)
+                return {'status': 'Ok',
+                        'next_page': session.get('next_page')
+                }
+            return {'status': 'Wrong code'}
+        return render_template('2authentication.html', user=user)
+    return "Not found user"
 
 
 @app.route('/qrcode', methods=['GET'])
+@login_required
 def qrcode():
     if not current_user.is_authenticated:
         return redirect(url_for('login'))
+    user = UserService.get_by_username(current_user.username)
 
-    return render_template('qrcode.html')
+    return render_template('qrcode.html', user = user)
 
 
 @app.route('/generate-qrcode')
@@ -111,6 +116,7 @@ def gen_qrcode():
 
 @app.route('/logout')
 def logout():
+    session.clear() # clear all session key
     logout_user()
     return redirect(url_for('index'))
 
@@ -149,3 +155,12 @@ def user():
         ]
         return render_template('user.html', user=user, posts=posts)
     return 'Not found user'
+
+@app.route('/edit-setting', methods=['PUT'])
+@login_required
+def setting():
+    if current_user.is_authenticated:
+        username = current_user.username
+    data = request.json
+    result = UserService.update_user(username,data['field'], data['value'])
+    return {"status": result} # 1 if success, else 0

@@ -9,7 +9,7 @@
         <!-- App favicon -->
         <link rel="shortcut icon" href="/assets/images/favicon.ico">
         <!-- App title -->
-        <title>Zircos - Responsive Admin Dashboard Template</title>
+        <title>Flask Login</title>
 
         <!-- App css -->
         <link href="/assets/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
@@ -19,13 +19,6 @@
         <link href="/assets/css/pages.css" rel="stylesheet" type="text/css" />
         <link href="/assets/css/menu.css" rel="stylesheet" type="text/css" />
         <link href="/assets/css/responsive.css" rel="stylesheet" type="text/css" />
-
-        <!-- HTML5 Shiv and Respond.js IE8 support of HTML5 elements and media queries -->
-        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-        <!--[if lt IE 9]>
-        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-        <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
-        <![endif]-->
 
         <script src="/assets/js/modernizr.min.js"></script>
 
@@ -43,18 +36,17 @@
                         <div class="wrapper-page">
 
                             <div class="m-t-40 account-pages">
-                                <div class="text-center account-logo-box">
+                                <!-- <div class="text-center account-logo-box">
                                     <h2 class="text-uppercase">
                                         <a href="index.html" class="text-success">
                                             <span><img src="/assets/images/logo.png" alt="" height="36"></span>
                                         </a>
                                     </h2>
-                                    <!--<h4 class="text-uppercase font-bold m-b-0">Sign In</h4>-->
-                                </div>
+                                </div> -->
                                 <div class="account-content">
                                     <div class="text-center m-b-20">
                                         <div class="m-b-20">
-                                            <img src="/assets/images/users/avatar-5.jpg" class="img-circle img-thumbnail thumb-lg" alt="thumbnail">
+                                            <img src="{{ user.avatar(128) }}" class="img-circle img-thumbnail thumb-lg" alt="thumbnail">
                                         </div>
 
                                         <p class="text-muted m-b-0 font-13">Enter your OTP in GG Authenticator. </p>
@@ -63,14 +55,14 @@
 
                                         <div class="form-group">
                                             <div class="col-xs-12">
-                                                <input class="form-control" type="password" required=""
-                                                       placeholder="Password">
+                                                <input id='user-otp' class="form-control" type="password" required=""
+                                                       placeholder="Your OTP">
                                             </div>
                                         </div>
 
                                         <div class="form-group account-btn text-center m-t-10">
                                             <div class="col-xs-12">
-                                                <button class="btn w-md btn-bordered btn-danger waves-effect waves-light"
+                                                <button id='verify-btn' class="btn w-md btn-bordered btn-danger waves-effect waves-light"
                                                         type="submit">OK
                                                 </button>
                                             </div>
@@ -87,7 +79,7 @@
 
                             <div class="row m-t-50">
                                 <div class="col-sm-12 text-center">
-                                    <p class="text-muted">Not you? return<a href="page-login.html" class="text-primary m-l-5"><b>Sign Out</b></a></p>
+                                    <p class="text-muted">Not you? <a href="{{ url_for('logout') }}" class="text-primary m-l-5"><b>Sign Out</b></a></p>
                                 </div>
                             </div>
 
@@ -120,3 +112,24 @@
 
     </body>
 </html>
+<script>
+$('#verify-btn').click(function (e) {
+    e.preventDefault();
+    // call ajax
+    $.ajax({
+            type : "POST",
+            url : '/reau',
+            data:JSON.stringify({otp: $('#user-otp').val()}),
+            contentType: 'application/json;charset=UTF-8',
+            success : function (result){
+                console.log("result: "+result.status);
+                console.log("next page: "+result.next_page);
+                $(location).attr('href',result.next_page);
+            },
+            error: (err) => {
+                console.log("Fail");
+                console.log(err);
+            }
+        });
+});
+</script>

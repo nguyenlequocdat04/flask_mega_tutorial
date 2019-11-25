@@ -34,3 +34,10 @@ class UserService(object):
             return UserDAO.create_user(username, password, email)
         except:
             return None
+
+    @staticmethod
+    def update_user(username, field, value):
+        try:
+            return UserDAO.update(username, field, value)
+        except DoesNotExist:
+            return None

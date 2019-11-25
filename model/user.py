@@ -15,6 +15,7 @@ class User(UserMixin, MongoModel):
     about_me = fields.CharField(max_length=140)
     last_seen = fields.DateTimeField(default=datetime.datetime.now())
     base32_key = fields.CharField()
+    totp_enable = fields.BooleanField()
     # def is_active(self):
     #     # Here you should write whatever the code is
     #     # that checks the database if your user is active
@@ -53,6 +54,10 @@ class UserDAO(object):
     def create_user(username, password, email):
         return User(username=username, password=generate_password_hash(
             password), email=email, base32_key=pyotp.random_base32()).save()
+
+    @staticmethod
+    def update(username, field, value):
+        return User.objects.raw({"_id": username}).update({'$set': {field : value}})
 
 
 @login.user_loader
