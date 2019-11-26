@@ -76,6 +76,7 @@ def authen():
             otp = request.json['otp']
             if totp.verify(otp):
                 login_user(user)
+                session.pop('base32_key', None) # remove session for security
                 return {'status': 'Ok',
                         'next_page': session.get('next_page')
                 }
@@ -164,3 +165,33 @@ def setting():
     data = request.json
     result = UserService.update_user(username,data['field'], data['value'])
     return {"status": result} # 1 if success, else 0
+
+@app.route('/recoverpw', methods=['GET','PUT'])
+def recoverpw():
+    if request.method == 'PUT':
+        username = request.json['username']
+        user = UserService.get_by_username(username)
+        if user:
+            session['base32_key'] = user.base32_key
+            session['username'] = user.username
+            return {
+                'status': 200,
+                'avatar': user.avatar(18)
+            }
+        else:
+            return {'status': 404}
+    return render_template('recoverpw.html')
+
+@app.route('/verify', methods=['PUT'])
+def verify():
+    otp = request.json['otp']
+    base32key = session.get('base32_key')
+    username = session.get('username')
+    if base32key:
+        totp = pyotp.TOTP(base32key)
+        if totp.verify(otp):
+            session.pop('base32_key', None) # remove session for security
+            session.pop('username', None)
+            login_user(UserService.get_by_username(username))
+            return {'status': 200}
+    return {"status": 403}
